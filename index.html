@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="uk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Інтерактивний урок математики: Розв’язування задач з використанням Теореми Піфагора | 9 клас</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            yellow: '#ffcc00',
+                            yellowLight: '#ffdb4d',
+                            dark: '#121212',
+                            card: '#1e1e1e',
+                            border: '#ffcc00',
+                            accent: '#ff9900'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            user-select: none;
+        }
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 380px;
+            background-color: #1a1a1a;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 2px solid #ffcc00;
+            transition: height 0.3s ease;
+        }
+        canvas {
+            touch-action: none;
+            cursor: crosshair;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .grid-bg {
+            background-image: linear-gradient(to right, rgba(255, 204, 0, 0.1) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 204, 0, 0.1) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .block-highlight {
+            border: 3px solid #ffcc00;
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.2);
+        }
+        .yellow-box {
+            background-color: #ffcc00;
+            color: #000000;
+            font-weight: 700;
+        }
+        /* Прозоре поле без рамки для друку на canvas із підтримкою перенесення та Enter */
+        .canvas-textarea {
+            position: absolute;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 20px;
+            font-weight: bold;
+            line-height: 1.4;
+            padding: 2px;
+            margin: 0;
+            resize: both;
+            z-index: 100;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            box-shadow: none;
+        }
+        .static-header {
+            font-size: 16px !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-gray-100">
+
+    <!-- Header Navigation Bar -->
+    <header class="static-header sticky top-0 z-50 bg-brand-card/95 backdrop-blur-md border-b-2 border-brand-yellow px-4 py-3 shadow-xl">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-brand-yellow text-black font-black px-3 py-1.5 rounded-lg text-base tracking-wider shadow-md">
+                    9 КЛАС
+                </div>
+                <div>
+                    <h1 class="text-base md:text-lg font-black text-brand-yellow uppercase tracking-wide leading-tight">
+                        Розв’язування типових вправ і задач з використанням Теореми Піфагора
+                    </h1>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <div class="flex items-center bg-brand-dark rounded-xl p-1 border border-brand-yellow">
+                    <button onclick="changeFontSize(-1)" class="px-2.5 py-0.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm font-bold text-white" title="Зменшити шрифт">A-</button>
+                    <span id="font-size-val" class="px-2 text-xs text-brand-yellow font-mono font-bold">100%</span>
+                    <button onclick="changeFontSize(1)" class="px-2.5 py-0.5 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm font-bold text-white" title="Збільшити шрифт">A+</button>
+                </div>
+                <button onclick="toggleFullscreen()" class="bg-brand-dark p-2 rounded-xl hover:bg-gray-800 border border-brand-yellow text-brand-yellow text-sm" title="Повний екран">
+                    <i class="fas font-solid fa-expand"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main id="main-content" class="max-w-7xl mx-auto px-4 py-8 space-y-10 flex-grow w-full text-base">
+
+        <!-- THEORETICAL BLOCK AT THE VERY BEGINNING -->
+        <section class="bg-brand-card rounded-2xl p-6 block-highlight space-y-4">
+            <div class="flex items-center space-x-3 border-b-2 border-brand-yellow pb-3">
+                <i class="fa-solid fa-book-open text-brand-yellow text-3xl"></i>
+                <h2 class="text-2xl font-black text-white uppercase">Теоретична довідка: Теорема Піфагора</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-brand-dark p-5 rounded-xl border-2 border-brand-yellow space-y-2">
+                    <h3 class="text-lg font-black text-brand-yellow uppercase">Основне формулювання</h3>
+                    <p class="text-gray-200 text-base leading-relaxed">
+                        У прямокутному трикутнику квадрат довжини гіпотенузи дорівнює сумі квадратів довжин катетів:
+                    </p>
+                    <div class="yellow-box p-3 rounded-lg text-center text-xl font-mono">
+                        c² = a² + b²
+                    </div>
+                </div>
+                <div class="bg-brand-dark p-5 rounded-xl border-2 border-brand-yellow space-y-2">
+                    <h3 class="text-lg font-black text-brand-yellow uppercase">Наслідки для обчислень</h3>
+                    <ul class="list-disc list-inside text-gray-200 text-base space-y-1">
+                        <li>Знаходження гіпотенузи: <span class="font-mono text-brand-yellow font-bold">c = √(a² + b²)</span></li>
+                        <li>Знаходження катета: <span class="font-mono text-brand-yellow font-bold">a = √(c² - b²)</span></li>
+                        <li>Обернена теорема: якщо <span class="font-mono text-brand-yellow font-bold">a² + b² = c²</span>, то трикутник прямокутний.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Tasks by Ready Drawings -->
+        <section class="space-y-10">
+            <div class="flex items-center space-x-3 bg-brand-card p-4 rounded-2xl block-highlight">
+                <i class="fa-solid fa-image text-brand-yellow text-3xl"></i>
+                <h2 class="text-2xl font-black text-white uppercase">Задачі за готовими малюнками</h2>
+            </div>
+
+            <div class="space-y-10">
+                <!-- Task 5 -->
+                <div class="bg-brand-card rounded-2xl p-6 block-highlight space-y-4">
+                    <span class="bg-brand-yellow text-black text-xs font-black px-3 py-1 rounded-md uppercase">Задача 5</span>
+                    <h3 class="text-xl font-black text-white">Знайти висоту BD рівнобедреного трикутника</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div id="canvas-container-img5" class="canvas-container grid-bg border-2 border-brand-yellow">
+                            <canvas id="canvas-img5"></canvas>
+                        </div>
+                        <div id="canvas-container-work5" class="canvas-container grid-bg border-2 border-brand-yellow">
+                            <canvas id="canvas-work5"></canvas>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 bg-brand-dark p-3 rounded-xl border-2 border-brand-yellow text-sm">
+                        <div class="flex items-center space-x-2">
+                            <button onclick="resizeCanvasHeight('work5', 100); resizeCanvasHeight('img5', 100);" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1.5 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-expand"></i> + Збільшити поля</button>
+                            <button onclick="resizeCanvasHeight('work5', -100); resizeCanvasHeight('img5', -100);" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1.5 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-compress"></i> - Зменшити поля</button>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="setTool('work5', 'pen', event)" class="tool-btn-work5 bg-brand-yellow text-black px-3 py-1.5 rounded-lg font-bold"><i class="fa-solid fa-pen"></i> Олівець</button>
+                            <button onclick="setTool('work5', 'text', event)" class="tool-btn-work5 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-font"></i> ДРУК</button>
+                            <button onclick="setTool('work5', 'eraser', event)" class="tool-btn-work5 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-eraser"></i> Гумка</button>
+                            <input type="color" id="color-work5" value="#ffcc00" onchange="setColor('work5', this.value)" class="w-8 h-8 bg-transparent cursor-pointer rounded">
+                            <button onclick="undoCanvas('work5')" class="bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-rotate-left"></i> Назад</button>
+                            <button onclick="clearCanvas('work5')" class="bg-red-900/60 text-red-200 px-3 py-1.5 rounded-lg font-bold hover:bg-red-800"><i class="fa-solid fa-trash"></i> Очистити</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5 bg-gray-900 p-2 rounded-xl text-xs border border-gray-700">
+                        <span class="text-gray-400 font-bold mr-1">Розмір друку:</span>
+                        <button onmousedown="event.preventDefault()" onclick="changeTextSize('work5', 4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2 py-0.5 rounded border border-brand-yellow/40" title="Збільшити текст">T+</button>
+                        <button onmousedown="event.preventDefault()" onclick="changeTextSize('work5', -4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2 py-0.5 rounded border border-brand-yellow/40" title="Зменшити текст">T-</button>
+                        <span id="text-size-val-work5" class="text-brand-yellow font-mono font-bold mr-2">20px</span>
+
+                        <span class="text-gray-400 font-bold mr-1 border-l border-gray-700 pl-2">Швидкі символи:</span>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('work5', '²')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2 py-0.5 rounded border border-brand-yellow/40">²</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('work5', '³')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2 py-0.5 rounded border border-brand-yellow/40">³</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('work5', '√')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2 py-0.5 rounded border border-brand-yellow/40">√</button>
+                    </div>
+                    <div class="bg-brand-dark p-4 rounded-xl border-2 border-gray-700 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="text-base font-bold">Відповідь (BD):</div>
+                        <div class="flex items-center space-x-3">
+                            <input type="number" id="input-img-5" placeholder="значення" class="bg-gray-800 border-2 border-brand-yellow rounded-lg px-3 py-2 text-base text-white font-mono font-bold focus:outline-none w-36">
+                            <button onclick="checkImgTask(5, 15)" class="bg-brand-yellow text-black font-extrabold px-4 py-2 rounded-lg text-base hover:bg-yellow-400 transition">Перевірити</button>
+                        </div>
+                    </div>
+                    <div id="result-img-5" class="hidden text-base p-3 rounded-xl font-bold"></div>
+                </div>
+
+                <!-- Task 6 -->
+                <div class="bg-brand-card rounded-2xl p-6 block-highlight space-y-4">
+                    <span class="bg-brand-yellow text-black text-xs font-black px-3 py-1 rounded-md uppercase">Задача 6</span>
+                    <h3 class="text-xl font-black text-white">Знайти половину основи AD</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div id="canvas-container-img6" class="canvas-container grid-bg border-2 border-brand-yellow">
+                            <canvas id="canvas-img6"></canvas>
+                        </div>
+                        <div id="canvas-container-work6" class="canvas-container grid-bg border-2 border-brand-yellow">
+                            <canvas id="canvas-work6"></canvas>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 bg-brand-dark p-3 rounded-xl border-2 border-brand-yellow text-sm">
+                        <div class="flex items-center space-x-2">
+                            <button onclick="resizeCanvasHeight('work6', 100); resizeCanvasHeight('img6', 100);" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1.5 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-expand"></i> + Збільшити поля</button>
+                            <button onclick="resizeCanvasHeight('work6', -100); resizeCanvasHeight('img6', -100);" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1.5 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-compress"></i> - Зменшити поля</button>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="setTool('work6', 'pen', event)" class="tool-btn-work6 bg-brand-yellow text-black px-3 py-1.5 rounded-lg font-bold"><i class="fa-solid fa-pen"></i> Олівець</button>
+                            <button onclick="setTool('work6', 'text', event)" class="tool-btn-work6 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-font"></i> ДРУК</button>
+                            <button onclick="setTool('work6', 'eraser', event)" class="tool-btn-work6 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-eraser"></i> Гумка</button>
+                            <input type="color" id="color-work6" value="#ffcc00" onchange="setColor('work6', this.value)" class="w-8 h-8 bg-transparent cursor-pointer rounded">
+                            <button onclick="undoCanvas('work6')" class="bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-rotate-left"></i> Назад</button>
+                            <button onclick="clearCanvas('work6')" class="bg-red-900/60 text-red-200 px-3 py-1.5 rounded-lg font-bold hover:bg-red-800"><i class="fa-solid fa-trash"></i> Очистити</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5 bg-gray-900 p-2 rounded-xl text-xs border border-gray-700">
+                        <span class="text-gray-400 font-bold mr-1">Розмір друку:</span>
+                        <button onmousedown="event.preventDefault()" onclick="changeTextSize('work6', 4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2 py-0.5 rounded border border-brand-yellow/40" title="Збільшити текст">T+</button>
+                        <button onmousedown="event.preventDefault()" onclick="changeTextSize('work6', -4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2 py-0.5 rounded border border-brand-yellow/40" title="Зменшити текст">T-</button>
+                        <span id="text-size-val-work6" class="text-brand-yellow font-mono font-bold mr-2">20px</span>
+
+                        <span class="text-gray-400 font-bold mr-1 border-l border-gray-700 pl-2">Швидкі символи:</span>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('work6', '²')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2 py-0.5 rounded border border-brand-yellow/40">²</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('work6', '³')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2 py-0.5 rounded border border-brand-yellow/40">³</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('work6', '√')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2 py-0.5 rounded border border-brand-yellow/40">√</button>
+                    </div>
+                    <div class="bg-brand-dark p-4 rounded-xl border-2 border-gray-700 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="text-base font-bold">Відповідь (AD):</div>
+                        <div class="flex items-center space-x-3">
+                            <input type="number" id="input-img-6" placeholder="значення" class="bg-gray-800 border-2 border-brand-yellow rounded-lg px-3 py-2 text-base text-white font-mono font-bold focus:outline-none w-36">
+                            <button onclick="checkImgTask(6, 8)" class="bg-brand-yellow text-black font-extrabold px-4 py-2 rounded-lg text-base hover:bg-yellow-400 transition">Перевірити</button>
+                        </div>
+                    </div>
+                    <div id="result-img-6" class="hidden text-base p-3 rounded-xl font-bold"></div>
+                </div>
+
+                <!-- Task 7 -->
+                <div class="bg-brand-card rounded-2xl p-6 block-highlight space-y-4">
+                    <span class="bg-brand-yellow text-black text-xs font-black px-3 py-1 rounded-md uppercase">Задача 7</span>
+                    <h3 class="text-xl font-black text-white">Знайти бічну сторону AB</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div id="canvas-container-img7" class="canvas-container grid-bg border-2 border-brand-yellow">
+                            <canvas id="canvas-img7"></canvas>
+                        </div>
+                        <div id="canvas-container-work7" class="canvas-container grid-bg border-2 border-brand-yellow">
+                            <canvas id="canvas-work7"></canvas>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 bg-brand-dark p-3 rounded-xl border-2 border-brand-yellow text-sm">
+                        <div class="flex items-center space-x-2">
+                            <button onclick="resizeCanvasHeight('work7', 100); resizeCanvasHeight('img7', 100);" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1.5 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-expand"></i> + Збільшити поля</button>
+                            <button onclick="resizeCanvasHeight('work7', -100); resizeCanvasHeight('img7', -100);" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1.5 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-compress"></i> - Зменшити поля</button>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="setTool('work7', 'pen', event)" class="tool-btn-work7 bg-brand-yellow text-black px-3 py-1.5 rounded-lg font-bold"><i class="fa-solid fa-pen"></i> Олівець</button>
+                            <button onclick="setTool('work7', 'text', event)" class="tool-btn-work7 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-font"></i> ДРУК</button>
+                            <button onclick="setTool('work7', 'eraser', event)" class="tool-btn-work7 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-eraser"></i> Гумка</button>
+                            <input type="color" id="color-work7" value="#ffcc00" onchange="setColor('work7', this.value)" class="w-8 h-8 bg-transparent cursor-pointer rounded">
+                            <button onclick="undoCanvas('work7')" class="bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-rotate-left"></i> Назад</button>
+                            <button onclick="clearCanvas('work7')" class="bg-red-900/60 text-red-200 px-3 py-1.5 rounded-lg font-bold hover:bg-red-800"><i class="fa-solid fa-trash"></i> Очистити</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5 bg-gray-900 p-2 rounded-xl text-xs border border-gray-700">
+                        <span class="text-gray-400 font-bold mr-1">Розмір друку:</span>
+                        <button onmousedown="event.preventDefault()" onclick="changeTextSize('work7', 4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2 py-0.5 rounded border border-brand-yellow/40" title="Збільшити текст">T+</button>
+                        <button onmousedown="event.preventDefault()" onclick="changeTextSize('work7', -4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2 py-0.5 rounded border border-brand-yellow/40" title="Зменшити текст">T-</button>
+                        <span id="text-size-val-work7" class="text-brand-yellow font-mono font-bold mr-2">20px</span>
+
+                        <span class="text-gray-400 font-bold mr-1 border-l border-gray-700 pl-2">Швидкі символи:</span>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('work7', '²')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2 py-0.5 rounded border border-brand-yellow/40">²</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('work7', '³')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2 py-0.5 rounded border border-brand-yellow/40">³</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('work7', '√')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2 py-0.5 rounded border border-brand-yellow/40">√</button>
+                    </div>
+                    <div class="bg-brand-dark p-4 rounded-xl border-2 border-gray-700 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="text-base font-bold">Відповідь (AB):</div>
+                        <div class="flex items-center space-x-3">
+                            <input type="number" id="input-img-7" placeholder="значення" class="bg-gray-800 border-2 border-brand-yellow rounded-lg px-3 py-2 text-base text-white font-mono font-bold focus:outline-none w-36">
+                            <button onclick="checkImgTask(7, 25)" class="bg-brand-yellow text-black font-extrabold px-4 py-2 rounded-lg text-base hover:bg-yellow-400 transition">Перевірити</button>
+                        </div>
+                    </div>
+                    <div id="result-img-7" class="hidden text-base p-3 rounded-xl font-bold"></div>
+                </div>
+
+                <!-- Task 8 -->
+                <div class="bg-brand-card rounded-2xl p-6 block-highlight space-y-4">
+                    <span class="bg-brand-yellow text-black text-xs font-black px-3 py-1 rounded-md uppercase">Задача 8</span>
+                    <h3 class="text-xl font-black text-white">Знайти сторону ромба AB</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div id="canvas-container-img8" class="canvas-container grid-bg border-2 border-brand-yellow">
+                            <canvas id="canvas-img8"></canvas>
+                        </div>
+                        <div id="canvas-container-work8" class="canvas-container grid-bg border-2 border-brand-yellow">
+                            <canvas id="canvas-work8"></canvas>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 bg-brand-dark p-3 rounded-xl border-2 border-brand-yellow text-sm">
+                        <div class="flex items-center space-x-2">
+                            <button onclick="resizeCanvasHeight('work8', 100); resizeCanvasHeight('img8', 100);" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1.5 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-expand"></i> + Збільшити поля</button>
+                            <button onclick="resizeCanvasHeight('work8', -100); resizeCanvasHeight('img8', -100);" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1.5 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-compress"></i> - Зменшити поля</button>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="setTool('work8', 'pen', event)" class="tool-btn-work8 bg-brand-yellow text-black px-3 py-1.5 rounded-lg font-bold"><i class="fa-solid fa-pen"></i> Олівець</button>
+                            <button onclick="setTool('work8', 'text', event)" class="tool-btn-work8 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-font"></i> ДРУК</button>
+                            <button onclick="setTool('work8', 'eraser', event)" class="tool-btn-work8 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-eraser"></i> Гумка</button>
+                            <input type="color" id="color-work8" value="#ffcc00" onchange="setColor('work8', this.value)" class="w-8 h-8 bg-transparent cursor-pointer rounded">
+                            <button onclick="undoCanvas('work8')" class="bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-rotate-left"></i> Назад</button>
+                            <button onclick="clearCanvas('work8')" class="bg-red-900/60 text-red-200 px-3 py-1.5 rounded-lg font-bold hover:bg-red-800"><i class="fa-solid fa-trash"></i> Очистити</button>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5 bg-gray-900 p-2 rounded-xl text-xs border border-gray-700">
+                        <span class="text-gray-400 font-bold mr-1">Розмір друку:</span>
+                        <button onmousedown="event.preventDefault()" onclick="changeTextSize('work8', 4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2 py-0.5 rounded border border-brand-yellow/40" title="Збільшити текст">T+</button>
+                        <button onmousedown="event.preventDefault()" onclick="changeTextSize('work8', -4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2 py-0.5 rounded border border-brand-yellow/40" title="Зменшити текст">T-</button>
+                        <span id="text-size-val-work8" class="text-brand-yellow font-mono font-bold mr-2">20px</span>
+
+                        <span class="text-gray-400 font-bold mr-1 border-l border-gray-700 pl-2">Швидкі символи:</span>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('work8', '²')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2 py-0.5 rounded border border-brand-yellow/40">²</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('work8', '³')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2 py-0.5 rounded border border-brand-yellow/40">³</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('work8', '√')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2 py-0.5 rounded border border-brand-yellow/40">√</button>
+                    </div>
+                    <div class="bg-brand-dark p-4 rounded-xl border-2 border-gray-700 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="text-base font-bold">Відповідь (AB):</div>
+                        <div class="flex items-center space-x-3">
+                            <input type="number" id="input-img-8" placeholder="значення" class="bg-gray-800 border-2 border-brand-yellow rounded-lg px-3 py-2 text-base text-white font-mono font-bold focus:outline-none w-36">
+                            <button onclick="checkImgTask(8, 15)" class="bg-brand-yellow text-black font-extrabold px-4 py-2 rounded-lg text-base hover:bg-yellow-400 transition">Перевірити</button>
+                        </div>
+                    </div>
+                    <div id="result-img-8" class="hidden text-base p-3 rounded-xl font-bold"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Classwork Practical Tasks (Restored here) -->
+        <section class="space-y-8">
+            <div class="flex items-center space-x-3 bg-brand-card p-4 rounded-2xl block-highlight">
+                <i class="fa-solid fa-pen-ruler text-brand-yellow text-3xl"></i>
+                <h2 class="text-2xl font-black text-white uppercase">Практичні завдання</h2>
+            </div>
+
+            <!-- TASK 1: № 1 -->
+            <div class="bg-brand-card rounded-2xl p-6 block-highlight space-y-4">
+                <span class="bg-brand-yellow text-black text-xs font-black px-3 py-1 rounded-md uppercase">2 рівень | Стор. 125</span>
+                <h3 class="text-xl font-black text-white">Завдання № 1. Сторона прямокутника</h3>
+
+                <div class="yellow-box p-4 rounded-xl text-lg shadow-md space-y-1">
+                    <p>Діагональ прямокутника дорівнює 13 см, а одна з його сторін – 12 см. Знайдіть другу сторону прямокутника.</p>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="text-sm font-bold text-gray-300 flex justify-between items-center flex-wrap gap-2">
+                        <span>Полотно для обчислень (з малюнком та Дано):</span>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="resizeCanvasHeight('1', 100)" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-expand"></i> + Збільшити поле</button>
+                            <button onclick="resizeCanvasHeight('1', -100)" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-compress"></i> - Зменшити поле</button>
+                        </div>
+                    </div>
+                    <div id="canvas-container-1" class="canvas-container grid-bg">
+                        <canvas id="canvas-1"></canvas>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 bg-brand-dark p-3 rounded-xl border-2 border-brand-yellow text-sm">
+                        <button onclick="setTool('1', 'pen', event)" class="tool-btn-1 bg-brand-yellow text-black px-3 py-1.5 rounded-lg font-bold"><i class="fa-solid fa-pen"></i> Олівець</button>
+                        <button onclick="setTool('1', 'text', event)" class="tool-btn-1 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-font"></i> ДРУК ТЕКСТУ</button>
+                        <button onclick="setTool('1', 'eraser', event)" class="tool-btn-1 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-eraser"></i> Гумка</button>
+                        <input type="color" id="color-1" value="#ffcc00" onchange="setColor('1', this.value)" class="w-8 h-8 bg-transparent cursor-pointer rounded">
+                        <button onclick="undoCanvas('1')" class="bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-rotate-left"></i> Назад</button>
+                        <button onclick="clearCanvas('1')" class="bg-red-900/60 text-red-200 px-3 py-1.5 rounded-lg font-bold hover:bg-red-800 ml-auto"><i class="fa-solid fa-trash"></i> Очистити</button>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5 bg-gray-900 p-2 rounded-xl text-xs border border-gray-700">
+                        <span class="text-gray-400 font-bold mr-1">Розмір друку:</span>
+                        <button onmousedown="event.preventDefault()" onclick="changeTextSize('1', 4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2.5 py-1 rounded border border-brand-yellow/40" title="Збільшити текст">T+</button>
+                        <button onmousedown="event.preventDefault()" onclick="changeTextSize('1', -4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2.5 py-1 rounded border border-brand-yellow/40" title="Зменшити текст">T-</button>
+                        <span id="text-size-val-1" class="text-brand-yellow font-mono font-bold mr-2">20px</span>
+
+                        <span class="text-gray-400 font-bold mr-1 border-l border-gray-700 pl-2">Швидкі символи:</span>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('1', '²')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">²</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('1', '³')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">³</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('1', '√')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">√</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('1', '°')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">°</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('1', 'Δ')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">Δ</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('1', '∠')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">∠</button>
+                    </div>
+                </div>
+
+                <div class="bg-brand-dark p-4 rounded-xl border-2 border-gray-700 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="text-base font-bold">Друга сторона прямокутника:</div>
+                    <div class="flex items-center space-x-3">
+                        <input type="number" id="input-task-2-1" placeholder="см" class="bg-gray-800 border-2 border-brand-yellow rounded-lg px-3 py-2 text-base text-white font-mono font-bold focus:outline-none w-36">
+                        <span class="text-base font-bold">см</span>
+                        <button onclick="checkTask2()" class="bg-brand-yellow text-black font-extrabold px-4 py-2 rounded-lg text-base hover:bg-yellow-400 transition">Перевірити</button>
+                    </div>
+                </div>
+                <div id="result-task-2" class="hidden text-base p-3 rounded-xl font-bold"></div>
+            </div>
+
+            <!-- TASK 2: № 2 -->
+            <div class="bg-brand-card rounded-2xl p-6 block-highlight space-y-4">
+                <span class="bg-brand-yellow text-black text-xs font-black px-3 py-1 rounded-md uppercase">2 рівень | Стор. 125</span>
+                <h3 class="text-xl font-black text-white">Завдання № 2. Сторона квадрата</h3>
+
+                <div class="yellow-box p-4 rounded-xl text-lg shadow-md leading-relaxed">
+                    Діагональ квадрата дорівнює 32 см. Знайдіть його сторону.
+                </div>
+
+                <div class="space-y-2">
+                    <div class="text-sm font-bold text-gray-300 flex justify-between items-center flex-wrap gap-2">
+                        <span>Полотно для обчислень (з малюнком та Дано):</span>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="resizeCanvasHeight('2', 100)" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-expand"></i> + Збільшити поле</button>
+                            <button onclick="resizeCanvasHeight('2', -100)" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-compress"></i> - Зменшити поле</button>
+                        </div>
+                    </div>
+                    <div id="canvas-container-2" class="canvas-container grid-bg">
+                        <canvas id="canvas-2"></canvas>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 bg-brand-dark p-3 rounded-xl border-2 border-brand-yellow text-sm">
+                        <button onclick="setTool('2', 'pen', event)" class="tool-btn-2 bg-brand-yellow text-black px-3 py-1.5 rounded-lg font-bold"><i class="fa-solid fa-pen"></i> Олівець</button>
+                        <button onclick="setTool('2', 'text', event)" class="tool-btn-2 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-font"></i> ДРУК ТЕКСТУ</button>
+                        <button onclick="setTool('2', 'eraser', event)" class="tool-btn-2 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-eraser"></i> Гумка</button>
+                        <input type="color" id="color-2" value="#ffcc00" onchange="setColor('2', this.value)" class="w-8 h-8 bg-transparent cursor-pointer rounded">
+                        <button onclick="undoCanvas('2')" class="bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-rotate-left"></i> Назад</button>
+                        <button onclick="clearCanvas('2')" class="bg-red-900/60 text-red-200 px-3 py-1.5 rounded-lg font-bold hover:bg-red-800 ml-auto"><i class="fa-solid fa-trash"></i> Очистити</button>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5 bg-gray-900 p-2 rounded-xl text-xs border border-gray-700">
+                        <span class="text-gray-400 font-bold mr-1">Розмір друку:</span>
+                        <button onmousedown="event.preventDefault()" onclick="changeTextSize('2', 4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2.5 py-1 rounded border border-brand-yellow/40" title="Збільшити текст">T+</button>
+                        <button onmousedown="event.preventDefault()" onclick="changeTextSize('2', -4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2.5 py-1 rounded border border-brand-yellow/40" title="Зменшити текст">T-</button>
+                        <span id="text-size-val-2" class="text-brand-yellow font-mono font-bold mr-2">20px</span>
+
+                        <span class="text-gray-400 font-bold mr-1 border-l border-gray-700 pl-2">Швидкі символи:</span>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('2', '²')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">²</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('2', '³')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">³</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('2', '√')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">√</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('2', '°')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">°</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('2', 'Δ')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">Δ</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('2', '∠')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">∠</button>
+                    </div>
+                </div>
+
+                <div class="bg-brand-dark p-4 rounded-xl border-2 border-gray-700 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="text-base font-bold">Квадрат сторони x²:</div>
+                    <div class="flex items-center space-x-3">
+                        <input type="number" id="input-task-3" placeholder="512" class="bg-gray-800 border-2 border-brand-yellow rounded-lg px-3 py-2 text-base text-white font-mono font-bold focus:outline-none w-36">
+                        <button onclick="checkTask3()" class="bg-brand-yellow text-black font-extrabold px-4 py-2 rounded-lg text-base hover:bg-yellow-400 transition">Перевірити</button>
+                    </div>
+                </div>
+                <div id="result-task-3" class="hidden text-base p-3 rounded-xl font-bold"></div>
+            </div>
+
+            <!-- TASK 3: № 3 -->
+            <div class="bg-brand-card rounded-2xl p-6 block-highlight space-y-4">
+                <span class="bg-brand-yellow text-black text-xs font-black px-3 py-1 rounded-md uppercase">2 рівень | Стор. 125</span>
+                <h3 class="text-xl font-black text-white">Завдання № 3. Медіана прямокутного трикутника</h3>
+
+                <div class="yellow-box p-4 rounded-xl text-lg shadow-md leading-relaxed">
+                    Катети прямокутного трикутника дорівнюють 7 см і 8 см. Знайдіть довжину медіани, проведеної до більшого катета.
+                </div>
+
+                <div class="space-y-2">
+                    <div class="text-sm font-bold text-gray-300 flex justify-between items-center flex-wrap gap-2">
+                        <span>Полотно для обчислень (з малюнком та Дано):</span>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="resizeCanvasHeight('3', 100)" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-expand"></i> + Збільшити поле</button>
+                            <button onclick="resizeCanvasHeight('3', -100)" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-compress"></i> - Зменшити поле</button>
+                        </div>
+                    </div>
+                    <div id="canvas-container-3" class="canvas-container grid-bg">
+                        <canvas id="canvas-3"></canvas>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 bg-brand-dark p-3 rounded-xl border-2 border-brand-yellow text-sm">
+                        <button onclick="setTool('3', 'pen', event)" class="tool-btn-3 bg-brand-yellow text-black px-3 py-1.5 rounded-lg font-bold"><i class="fa-solid fa-pen"></i> Олівець</button>
+                        <button onclick="setTool('3', 'text', event)" class="tool-btn-3 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-font"></i> ДРУК ТЕКСТУ</button>
+                        <button onclick="setTool('3', 'eraser', event)" class="tool-btn-3 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-eraser"></i> Гумка</button>
+                        <input type="color" id="color-3" value="#ffcc00" onchange="setColor('3', this.value)" class="w-8 h-8 bg-transparent cursor-pointer rounded">
+                        <button onclick="undoCanvas('3')" class="bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-rotate-left"></i> Назад</button>
+                        <button onclick="clearCanvas('3')" class="bg-red-900/60 text-red-200 px-3 py-1.5 rounded-lg font-bold hover:bg-red-800 ml-auto"><i class="fa-solid fa-trash"></i> Очистити</button>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5 bg-gray-900 p-2 rounded-xl text-xs border border-gray-700">
+                        <span class="text-gray-400 font-bold mr-1">Розмір друку:</span>
+                        <button onmousedown="event.preventDefault()" onclick="changeTextSize('3', 4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2.5 py-1 rounded border border-brand-yellow/40" title="Збільшити текст">T+</button>
+                        <button onmousedown="event.preventDefault()" onclick="changeTextSize('3', -4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2.5 py-1 rounded border border-brand-yellow/40" title="Зменшити текст">T-</button>
+                        <span id="text-size-val-3" class="text-brand-yellow font-mono font-bold mr-2">20px</span>
+
+                        <span class="text-gray-400 font-bold mr-1 border-l border-gray-700 pl-2">Швидкі символи:</span>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('3', '²')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">²</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('3', '³')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">³</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('3', '√')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">√</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('3', '°')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">°</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('3', 'Δ')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">Δ</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('3', '∠')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">∠</button>
+                    </div>
+                </div>
+
+                <div class="bg-brand-dark p-4 rounded-xl border-2 border-gray-700 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="text-base font-bold">Квадрат медіани AM²:</div>
+                    <div class="flex items-center space-x-3">
+                        <input type="number" id="input-task-4" placeholder="65" class="bg-gray-800 border-2 border-brand-yellow rounded-lg px-3 py-2 text-base text-white font-mono font-bold focus:outline-none w-36">
+                        <button onclick="checkTask4()" class="bg-brand-yellow text-black font-extrabold px-4 py-2 rounded-lg text-base hover:bg-yellow-400 transition">Перевірити</button>
+                    </div>
+                </div>
+                <div id="result-task-4" class="hidden text-base p-3 rounded-xl font-bold"></div>
+            </div>
+
+            <!-- TASK 4: № 4 -->
+            <div class="bg-brand-card rounded-2xl p-6 block-highlight space-y-4">
+                <span class="bg-brand-yellow text-black text-xs font-black px-3 py-1 rounded-md uppercase">2 рівень | Стор. 125</span>
+                <h3 class="text-xl font-black text-white">Завдання № 4. Дотична до кола</h3>
+
+                <div class="yellow-box p-4 rounded-xl text-lg shadow-md leading-relaxed">
+                    З точки A до кола із центром O проведено дотичну, B – точка дотику. Знайдіть довжину відрізка AO, якщо OB = 2 см, AB = 7 см.
+                </div>
+
+                <div class="space-y-2">
+                    <div class="text-sm font-bold text-gray-300 flex justify-between items-center flex-wrap gap-2">
+                        <span>Полотно для обчислень (з малюнком та Дано):</span>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="resizeCanvasHeight('4', 100)" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-expand"></i> + Збільшити поле</button>
+                            <button onclick="resizeCanvasHeight('4', -100)" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-compress"></i> - Зменшити поле</button>
+                        </div>
+                    </div>
+                    <div id="canvas-container-4" class="canvas-container grid-bg">
+                        <canvas id="canvas-4"></canvas>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 bg-brand-dark p-3 rounded-xl border-2 border-brand-yellow text-sm">
+                        <button onclick="setTool('4', 'pen', event)" class="tool-btn-4 bg-brand-yellow text-black px-3 py-1.5 rounded-lg font-bold"><i class="fa-solid fa-pen"></i> Олівець</button>
+                        <button onclick="setTool('4', 'text', event)" class="tool-btn-4 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-font"></i> ДРУК ТЕКСТУ</button>
+                        <button onclick="setTool('4', 'eraser', event)" class="tool-btn-4 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-eraser"></i> Гумка</button>
+                        <input type="color" id="color-4" value="#ffcc00" onchange="setColor('4', this.value)" class="w-8 h-8 bg-transparent cursor-pointer rounded">
+                        <button onclick="undoCanvas('4')" class="bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-rotate-left"></i> Назад</button>
+                        <button onclick="clearCanvas('4')" class="bg-red-900/60 text-red-200 px-3 py-1.5 rounded-lg font-bold hover:bg-red-800 ml-auto"><i class="fa-solid fa-trash"></i> Очистити</button>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5 bg-gray-900 p-2 rounded-xl text-xs border border-gray-700">
+                        <span class="text-gray-400 font-bold mr-1">Розмір друку:</span>
+                        <button onmousedown="event.preventDefault()" onclick="changeTextSize('4', 4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2.5 py-1 rounded border border-brand-yellow/40" title="Збільшити текст">T+</button>
+                        <button onmousedown="event.preventDefault()" onclick="changeTextSize('4', -4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2.5 py-1 rounded border border-brand-yellow/40" title="Зменшити текст">T-</button>
+                        <span id="text-size-val-4" class="text-brand-yellow font-mono font-bold mr-2">20px</span>
+
+                        <span class="text-gray-400 font-bold mr-1 border-l border-gray-700 pl-2">Швидкі символи:</span>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('4', '²')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">²</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('4', '³')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">³</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('4', '√')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">√</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('4', '°')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">°</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('4', 'Δ')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">Δ</button>
+                        <button onmousedown="event.preventDefault()" onclick="insertSymbol('4', '∠')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">∠</button>
+                    </div>
+                </div>
+
+                <div class="bg-brand-dark p-4 rounded-xl border-2 border-gray-700 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="text-base font-bold">Квадрат відрізка AO²:</div>
+                    <div class="flex items-center space-x-3">
+                        <input type="number" id="input-task-5" placeholder="53" class="bg-gray-800 border-2 border-brand-yellow rounded-lg px-3 py-2 text-base text-white font-mono font-bold focus:outline-none w-36">
+                        <button onclick="checkTask5()" class="bg-brand-yellow text-black font-extrabold px-4 py-2 rounded-lg text-base hover:bg-yellow-400 transition">Перевірити</button>
+                    </div>
+                </div>
+                <div id="result-task-5" class="hidden text-base p-3 rounded-xl font-bold"></div>
+            </div>
+        </section>
+
+        <!-- Block 4: HARDER INDEPENDENT TASK -->
+        <section class="bg-brand-card rounded-2xl p-8 border-4 border-brand-yellow shadow-2xl space-y-6">
+            <div class="flex items-center space-x-3 border-b-2 border-brand-yellow pb-4">
+                <i class="fa-solid fa-star text-brand-yellow text-4xl animate-bounce"></i>
+                <div>
+                    <span class="bg-red-600 text-white font-black px-3 py-1 rounded-md text-xs uppercase tracking-wider">Підвищений рівень</span>
+                    <h2 class="text-2xl md:text-3xl font-black text-brand-yellow uppercase mt-1">Завдання для самостійного виконання</h2>
+                </div>
+            </div>
+
+            <div class="yellow-box p-5 rounded-2xl text-xl shadow-xl leading-relaxed">
+                Основа рівнобедреного трикутника дорівнює <span class="text-red-800 font-black">12 см</span>, а висота, проведена до неї, дорівнює <span class="text-red-800 font-black">8 см</span>. Знайдіть бічну сторону трикутника.
+            </div>
+
+            <div class="space-y-2">
+                <div class="text-sm font-bold text-gray-300 flex justify-between items-center flex-wrap gap-2">
+                    <span>Полотно для обчислень (з малюнком та Дано):</span>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="resizeCanvasHeight('5', 100)" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-expand"></i> + Збільшити поле</button>
+                        <button onclick="resizeCanvasHeight('5', -100)" class="bg-gray-800 hover:bg-gray-700 text-brand-yellow px-2.5 py-1 rounded border border-brand-yellow text-xs font-bold"><i class="fa-solid fa-compress"></i> - Зменшити поле</button>
+                    </div>
+                </div>
+                <div id="canvas-container-5" class="canvas-container grid-bg">
+                    <canvas id="canvas-5"></canvas>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 bg-brand-dark p-3 rounded-xl border-2 border-brand-yellow text-sm">
+                    <button onclick="setTool('5', 'pen', event)" class="tool-btn-5 bg-brand-yellow text-black px-3 py-1.5 rounded-lg font-bold"><i class="fa-solid fa-pen"></i> Олівець</button>
+                    <button onclick="setTool('5', 'text', event)" class="tool-btn-5 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-font"></i> ДРУК ТЕКСТУ</button>
+                    <button onclick="setTool('5', 'eraser', event)" class="tool-btn-5 bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-eraser"></i> Гумка</button>
+                    <input type="color" id="color-5" value="#ffcc00" onchange="setColor('5', this.value)" class="w-8 h-8 bg-transparent cursor-pointer rounded">
+                    <button onclick="undoCanvas('5')" class="bg-gray-800 text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-gray-700"><i class="fa-solid fa-rotate-left"></i> Назад</button>
+                    <button onclick="clearCanvas('5')" class="bg-red-900/60 text-red-200 px-3 py-1.5 rounded-lg font-bold hover:bg-red-800 ml-auto"><i class="fa-solid fa-trash"></i> Очистити</button>
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5 bg-gray-900 p-2 rounded-xl text-xs border border-gray-700">
+                    <span class="text-gray-400 font-bold mr-1">Розмір друку:</span>
+                    <button onmousedown="event.preventDefault()" onclick="changeTextSize('5', 4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2.5 py-1 rounded border border-brand-yellow/40" title="Збільшити текст">T+</button>
+                    <button onmousedown="event.preventDefault()" onclick="changeTextSize('5', -4)" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-black px-2.5 py-1 rounded border border-brand-yellow/40" title="Зменшити текст">T-</button>
+                    <span id="text-size-val-5" class="text-brand-yellow font-mono font-bold mr-2">20px</span>
+
+                    <span class="text-gray-400 font-bold mr-1 border-l border-gray-700 pl-2">Швидкі символи:</span>
+                    <button onmousedown="event.preventDefault()" onclick="insertSymbol('5', '²')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">²</button>
+                    <button onmousedown="event.preventDefault()" onclick="insertSymbol('5', '³')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">³</button>
+                    <button onmousedown="event.preventDefault()" onclick="insertSymbol('5', '√')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">√</button>
+                    <button onmousedown="event.preventDefault()" onclick="insertSymbol('5', '°')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">°</button>
+                    <button onmousedown="event.preventDefault()" onclick="insertSymbol('5', 'Δ')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">Δ</button>
+                    <button onmousedown="event.preventDefault()" onclick="insertSymbol('5', '∠')" class="bg-gray-800 hover:bg-brand-yellow hover:text-black text-brand-yellow font-extrabold px-2.5 py-1 rounded border border-brand-yellow/40">∠</button>
+                </div>
+            </div>
+
+            <div class="bg-brand-dark p-5 rounded-2xl border-2 border-brand-yellow flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="text-lg font-black text-white">Введіть довжину бічної сторони (см):</div>
+                <div class="flex items-center space-x-3">
+                    <input type="number" id="input-task-6" placeholder="відповідь" class="bg-gray-800 border-2 border-brand-yellow rounded-xl px-4 py-2.5 text-lg text-white font-mono font-bold focus:outline-none w-40">
+                    <button onclick="checkTask6()" class="bg-brand-yellow text-black font-black px-6 py-2.5 rounded-xl text-lg hover:bg-yellow-400 transition shadow-lg">Перевірити</button>
+                </div>
+            </div>
+            <div id="result-task-6" class="hidden text-lg p-4 rounded-xl font-bold"></div>
+        </section>
+
+        <!-- Block 5: Physical Break -->
+        <section class="bg-brand-card rounded-2xl p-6 block-highlight text-center space-y-4">
+            <div class="inline-flex items-center justify-center bg-brand-yellow text-black p-4 rounded-full text-4xl shadow-lg">
+                <i class="fa-solid fa-child-reaching"></i>
+            </div>
+            <h2 class="text-2xl font-black text-white uppercase">Фізкультхвилинка (Перерва для очей)</h2>
+            <p class="text-lg text-gray-200 max-w-2xl mx-auto">
+                Зніміть напругу! Поклипайте очима 10 разів, зробіть кілька колових обертів шиєю та плечима назад, витягніть руки вгору та глибоко вдихніть.
+            </p>
+            <div>
+                <button onclick="startBreakTimer()" id="timer-btn" class="bg-brand-yellow text-black font-black px-8 py-3 rounded-xl hover:bg-yellow-400 transition text-lg shadow-xl">
+                    <i class="fa-solid fa-stopwatch mr-2"></i> Розпочати відпочинок (30 сек)
+                </button>
+                <div id="timer-display" class="hidden text-3xl font-mono font-black text-brand-yellow mt-4">30</div>
+            </div>
+        </section>
+
+        <!-- Block 6: Homework Section -->
+        <section class="bg-brand-card rounded-2xl p-6 block-highlight space-y-4">
+            <div class="flex items-center space-x-3 border-b-2 border-brand-yellow pb-3">
+                <i class="fa-solid fa-house-laptop text-brand-yellow text-3xl"></i>
+                <h2 class="text-2xl font-black text-white uppercase">Домашнє завдання</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-brand-dark p-5 rounded-xl border-2 border-gray-700 space-y-3">
+                    <span class="bg-brand-yellow text-black text-xs font-black px-3 py-1 rounded uppercase">Завдання №1</span>
+                    <p class="text-base text-gray-200 leading-relaxed">
+                        Діагоналі ромба дорівнюють <span class="font-bold text-brand-yellow">12 см</span> і <span class="font-bold text-brand-yellow">16 см</span>. Знайдіть сторону ромба.
+                    </p>
+                </div>
+                <div class="bg-brand-dark p-5 rounded-xl border-2 border-gray-700 space-y-3">
+                    <span class="bg-brand-yellow text-black text-xs font-black px-3 py-1 rounded uppercase">Завдання №2</span>
+                    <p class="text-base text-gray-200 leading-relaxed">
+                        Одна зі сторін прямокутника дорівнює <span class="font-bold text-brand-yellow">9 см</span>, а його діагональ – <span class="font-mono text-brand-yellow font-bold">15 см</span>. Знайдіть периметр прямокутника.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Block 7: Reflection -->
+        <section class="bg-brand-card rounded-2xl p-8 block-highlight text-center space-y-6">
+            <div class="space-y-2">
+                <h2 class="text-3xl font-black text-brand-yellow uppercase tracking-wide">Скарбничка успіху (Рефлексія)</h2>
+                <p class="text-lg text-gray-200">Оберіть вашу монету успіху на сьогоднішньому уроці:</p>
+            </div>
+
+            <div class="flex justify-center flex-wrap gap-6 pt-2">
+                <button onclick="selectReflection('Все зрозуміло! Працював легко та із задоволенням.')" class="group bg-brand-dark hover:border-brand-yellow border-4 border-gray-700 p-6 rounded-2xl text-center space-y-3 w-48 transition transform hover:scale-105 shadow-xl">
+                    <div class="text-6xl group-hover:bounce">🪙</div>
+                    <div class="text-base font-black text-brand-yellow">Все зрозуміло!</div>
+                    <p class="text-xs text-gray-400">Легко розв'язував завдання</p>
+                </button>
+                <button onclick="selectReflection('Все вийшло добре! Матеріал засвоєно.')" class="group bg-brand-dark hover:border-brand-yellow border-4 border-gray-700 p-6 rounded-2xl text-center space-y-3 w-48 transition transform hover:scale-105 shadow-xl">
+                    <div class="text-6xl group-hover:bounce">🥇</div>
+                    <div class="text-base font-black text-green-400">Добре розібрався</div>
+                    <p class="text-xs text-gray-400">Були незначні питання</p>
+                </button>
+                <button onclick="selectReflection('Потрібно ще трохи потренуватися та попрацювати.')" class="group bg-brand-dark hover:border-brand-yellow border-4 border-gray-700 p-6 rounded-2xl text-center space-y-3 w-48 transition transform hover:scale-105 shadow-xl">
+                    <div class="text-6xl group-hover:bounce">⭐</div>
+                    <div class="text-base font-black text-orange-400">Потрібна практика</div>
+                    <p class="text-xs text-gray-400">Ще повторю правила</p>
+                </button>
+            </div>
+            <div id="refl-msg" class="hidden text-xl text-brand-yellow font-black pt-4"></div>
+        </section>
+
+    </main>
+
+    <footer class="bg-brand-card border-t-2 border-brand-yellow py-4 px-4 text-center text-sm font-bold text-gray-300 mt-12">
+        <p>Геометрія 9 клас • Урок з використанням Теореми Піфагора</p>
+    </footer>
+
+    <script>
+        let currentZoom = 100;
+        function changeFontSize(delta) {
+            currentZoom += delta * 5;
+            if (currentZoom < 85) currentZoom = 85;
+            if (currentZoom > 130) currentZoom = 130;
+            document.getElementById('font-size-val').innerText = currentZoom + '%';
+            document.documentElement.style.fontSize = (currentZoom / 100 * 16) + 'px';
+            
+            setTimeout(() => {
+                const normalIds = ['1', '2', '3', '4', '5'];
+                normalIds.forEach(id => renderCanvasPreset(id));
+                for(let i=5; i<=8; i++) renderCanvasPreset(`img${i}`);
+            }, 100);
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {});
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        function toggleAnswer(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+        }
+
+        // CANVAS ENGINE
+        const canvasStates = {};
+
+        function initCanvases() {
+            const normalIds = ['1', '2', '3', '4', '5'];
+            const imgIds = [];
+            for(let i=5; i<=8; i++){
+                imgIds.push(`img${i}`);
+                imgIds.push(`work${i}`);
+            }
+            const allIds = [...normalIds, ...imgIds];
+
+            allIds.forEach(id => {
+                const container = document.getElementById(`canvas-container-${id}`);
+                const canvas = document.getElementById(`canvas-${id}`);
+                if (!canvas || !container) return;
+
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+
+                const ctx = canvas.getContext('2d');
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = '#ffcc00';
+
+                canvasStates[id] = {
+                    canvas: canvas,
+                    container: container,
+                    ctx: ctx,
+                    isDrawing: false,
+                    tool: 'pen',
+                    color: '#ffcc00',
+                    fontSize: 20,
+                    history: [],
+                    activeTextarea: null
+                };
+
+                renderCanvasPreset(id);
+                saveState(id);
+
+                canvas.addEventListener('mousedown', (e) => handleCanvasStart(id, e));
+                canvas.addEventListener('mousemove', (e) => handleCanvasMove(id, e));
+                canvas.addEventListener('mouseup', () => handleCanvasEnd(id));
+                canvas.addEventListener('mouseleave', () => handleCanvasEnd(id));
+
+                canvas.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    handleCanvasStart(id, e.touches[0]);
+                }, { passive: false });
+                canvas.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    handleCanvasMove(id, e.touches[0]);
+                }, { passive: false });
+                canvas.addEventListener('touchend', () => handleCanvasEnd(id));
+            });
+        }
+
+        function renderCanvasPreset(id) {
+            const state = canvasStates[id];
+            if(!state) return;
+            const ctx = state.ctx;
+            const w = state.canvas.width;
+            const h = state.canvas.height;
+
+            if (id === '1') drawTask1Preset(ctx, w, h);
+            if (id === '2') drawTask2Preset(ctx, w, h);
+            if (id === '3') drawTask3Preset(ctx, w, h);
+            if (id === '4') drawTask4Preset(ctx, w, h);
+            if (id === '5') drawTask5Preset(ctx, w, h);
+
+            if (id.startsWith('img')) {
+                const num = parseInt(id.replace('img', ''));
+                drawUserImageTask(ctx, num, w, h);
+            }
+        }
+
+        function resizeCanvasHeight(id, delta) {
+            const state = canvasStates[id];
+            if (!state) return;
+            if (state.activeTextarea) commitTextareaToCanvas(id);
+
+            const currentHeight = state.container.clientHeight;
+            const newHeight = Math.max(250, Math.min(800, currentHeight + delta));
+
+            const oldImageData = state.ctx.getImageData(0, 0, state.canvas.width, state.canvas.height);
+
+            state.container.style.height = newHeight + 'px';
+            state.canvas.height = newHeight;
+
+            state.ctx.lineWidth = 3;
+            state.ctx.lineCap = 'round';
+            state.ctx.lineJoin = 'round';
+            state.ctx.strokeStyle = state.color;
+
+            state.ctx.clearRect(0, 0, state.canvas.width, state.canvas.height);
+            renderCanvasPreset(id);
+            state.ctx.putImageData(oldImageData, 0, 0);
+
+            saveState(id);
+        }
+
+        function drawDanoBlockWhite(ctx, lines, x, y) {
+            ctx.save();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 22px Inter, sans-serif';
+            ctx.fillText('Дано:', x, y);
+            
+            ctx.font = 'bold 18px Inter, sans-serif';
+            lines.forEach((line, index) => {
+                ctx.fillText(line, x, y + 30 + (index * 26));
+            });
+            ctx.restore();
+        }
+
+        function drawTask1Preset(ctx, w, h) {
+            ctx.save();
+            ctx.strokeStyle = '#ffcc00';
+            ctx.lineWidth = 4;
+            ctx.fillStyle = 'rgba(255, 204, 0, 0.12)';
+
+            const startX = Math.min(50, w * 0.08);
+            const startY = Math.min(70, h * 0.18);
+            const rectW = Math.min(260, w * 0.4);
+            const rectH = Math.min(180, h * 0.5);
+
+            ctx.fillRect(startX, startY, rectW, rectH);
+            ctx.strokeRect(startX, startY, rectW, rectH);
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#ff3366';
+            ctx.lineWidth = 4;
+            ctx.moveTo(startX, startY + rectH);
+            ctx.lineTo(startX + rectW, startY);
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px Inter, sans-serif';
+            ctx.fillText('A', startX - 25, startY + rectH + 20);
+            ctx.fillText('B', startX + rectW + 12, startY + rectH + 20);
+            ctx.fillText('C', startX + rectW + 12, startY - 10);
+            ctx.fillText('D', startX - 25, startY - 10);
+
+            ctx.fillText('12 см', startX + rectW / 2 - 35, startY + rectH + 32);
+            ctx.fillStyle = '#ff3366';
+            ctx.fillText('13 см', startX + rectW / 2 - 45, startY + rectH / 2 - 5);
+
+            drawDanoBlockWhite(ctx, [
+                'ABCD — прямокутник',
+                'AC = 13 см (діагональ)',
+                'AB = 12 см',
+                '----------------------',
+                'Знайти: BC'
+            ], startX + rectW + 50, startY + 10);
+
+            ctx.restore();
+        }
+
+        function drawTask2Preset(ctx, w, h) {
+            ctx.save();
+            ctx.strokeStyle = '#ffcc00';
+            ctx.lineWidth = 4;
+            ctx.fillStyle = 'rgba(255, 204, 0, 0.12)';
+
+            const startX = Math.min(50, w * 0.08);
+            const startY = Math.min(60, h * 0.15);
+            const side = Math.min(210, w * 0.38);
+
+            ctx.fillRect(startX, startY, side, side);
+            ctx.strokeRect(startX, startY, side, side);
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#ff3366';
+            ctx.lineWidth = 4;
+            ctx.moveTo(startX, startY + side);
+            ctx.lineTo(startX + side, startY);
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px Inter, sans-serif';
+            ctx.fillText('A', startX - 25, startY + side + 20);
+            ctx.fillText('B', startX + side + 12, startY + side + 20);
+            ctx.fillText('C', startX + side + 12, startY - 10);
+            ctx.fillText('D', startX - 25, startY - 10);
+
+            ctx.fillText('x', startX + side / 2 - 5, startY + side + 32);
+            ctx.fillText('x', startX + side + 20, startY + side / 2 + 5);
+            ctx.fillStyle = '#ff3366';
+            ctx.fillText('32 см', startX + side / 2 - 40, startY + side / 2 - 5);
+
+            drawDanoBlockWhite(ctx, [
+                'ABCD — квадрат',
+                'AC = 32 см (діагональ)',
+                'AB = BC = x',
+                '----------------------',
+                'Знайти: x (сторону)'
+            ], startX + side + 50, startY + 10);
+
+            ctx.restore();
+        }
+
+        function drawTask3Preset(ctx, w, h) {
+            ctx.save();
+            const startX = Math.min(60, w * 0.08);
+            const startY = Math.min(50, h * 0.12);
+            const cathetusA = Math.min(200, h * 0.6);
+            const cathetusB = Math.min(250, w * 0.38);
+
+            const Cx = startX, Cy = startY + cathetusA;
+            const Ax = startX, Ay = startY;
+            const Bx = startX + cathetusB, By = Cy;
+            const Mx = startX + cathetusB / 2, My = Cy;
+
+            ctx.fillStyle = 'rgba(255, 204, 0, 0.12)';
+            ctx.beginPath();
+            ctx.moveTo(Ax, Ay); ctx.lineTo(Cx, Cy); ctx.lineTo(Bx, By); ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = '#ffcc00';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            ctx.strokeRect(Cx, Cy - 22, 22, 22);
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 4.5;
+            ctx.moveTo(Ax, Ay); ctx.lineTo(Mx, My);
+            ctx.stroke();
+
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath(); ctx.arc(Mx, My, 5, 0, 2 * Math.PI); ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px Inter, sans-serif';
+            ctx.fillText('A', Ax - 28, Ay + 5);
+            ctx.fillText('C', Cx - 28, Cy + 22);
+            ctx.fillText('B', Bx + 15, By + 22);
+            ctx.fillText('M', Mx - 8, My + 32);
+
+            ctx.fillText('7 см', Ax - 60, Ay + cathetusA / 2);
+            ctx.fillText('8 см (BC)', Cx + cathetusB / 2 - 40, Cy + 42);
+
+            drawDanoBlockWhite(ctx, [
+                'ΔABC (∠C = 90°)',
+                'AC = 7 см, BC = 8 см',
+                'AM — медіана',
+                '----------------------',
+                'Знайти: AM'
+            ], startX + cathetusB + 45, startY + 10);
+
+            ctx.restore();
+        }
+
+        function drawTask4Preset(ctx, w, h) {
+            ctx.save();
+            ctx.strokeStyle = '#ffcc00';
+            ctx.lineWidth = 4;
+
+            const Ox = Math.min(150, w * 0.2);
+            const Oy = Math.min(190, h * 0.5);
+            const R = Math.min(85, h * 0.25);
+
+            ctx.beginPath();
+            ctx.arc(Ox, Oy, R, 0, 2 * Math.PI);
+            ctx.fillStyle = 'rgba(255, 204, 0, 0.1)';
+            ctx.fill();
+            ctx.stroke();
+
+            const Bx = Ox, By = Oy - R;
+            const Ax = Ox + Math.min(220, w * 0.35), Ay = By;
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#22c55e';
+            ctx.lineWidth = 4.5;
+            ctx.moveTo(Bx, By); ctx.lineTo(Ax, Ay);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#ffcc00';
+            ctx.moveTo(Ox, Oy); ctx.lineTo(Bx, By);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#ff3366';
+            ctx.lineWidth = 4.5;
+            ctx.moveTo(Ax, Ay); ctx.lineTo(Ox, Oy);
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffcc00';
+            ctx.beginPath(); ctx.arc(Ox, Oy, 7, 0, 2 * Math.PI); ctx.fill();
+            ctx.strokeRect(Bx, By, 22, 22);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px Inter, sans-serif';
+            ctx.fillText('O', Ox - 25, Oy + 10);
+            ctx.fillText('B', Bx - 5, By - 15);
+            ctx.fillText('A', Ax + 15, Ay + 5);
+
+            ctx.fillText('2 см', Ox - 55, Oy - R / 2);
+            ctx.fillStyle = '#22c55e';
+            ctx.fillText('7 см', Bx + 90, By - 15);
+
+            drawDanoBlockWhite(ctx, [
+                'Коло з центром O',
+                'AB — дотична (AB ⊥ OB)',
+                'OB = 2 см, AB = 7 см',
+                '----------------------',
+                'Знайти: AO'
+            ], Ax + 35, By - 20);
+
+            ctx.restore();
+        }
+
+        function drawTask5Preset(ctx, w, h) {
+            ctx.save();
+            ctx.strokeStyle = '#ffcc00';
+            ctx.lineWidth = 4;
+            ctx.fillStyle = 'rgba(255, 204, 0, 0.12)';
+
+            const startX = Math.min(50, w * 0.08);
+            const startY = Math.min(50, h * 0.12);
+            const baseW = Math.min(240, w * 0.38);
+            const heightH = Math.min(180, h * 0.5);
+
+            const Bx = startX + baseW / 2, By = startY;
+            const Ax = startX, Ay = startY + heightH;
+            const Cx = startX + baseW, Cy = startY + heightH;
+            const Dx = Bx, Dy = Ay;
+
+            ctx.beginPath();
+            ctx.moveTo(Bx, By); ctx.lineTo(Ax, Ay); ctx.lineTo(Cx, Cy); ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#ff3366';
+            ctx.lineWidth = 3;
+            ctx.moveTo(Bx, By); ctx.lineTo(Dx, Dy);
+            ctx.stroke();
+
+            ctx.strokeRect(Dx - 15, Dy - 15, 15, 15);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 22px Inter, sans-serif';
+            ctx.fillText('B', Bx - 8, By - 10);
+            ctx.fillText('A', Ax - 20, Ay + 20);
+            ctx.fillText('C', Cx + 10, Cy + 20);
+            ctx.fillText('D', Dx - 8, Dy + 25);
+
+            ctx.fillText('h = 8 см', Bx + 10, By + heightH / 2);
+            ctx.fillText('AC = 12 см', Ax + baseW / 2 - 45, Ay + 45);
+            ctx.fillStyle = '#ff3366';
+            ctx.fillText('AB = ?', Ax - 30, Ay - heightH / 2);
+
+            drawDanoBlockWhite(ctx, [
+                'ΔABC (AB = BC)',
+                'AC = 12 см (основа)',
+                'BD = 8 см (висота)',
+                'AD = DC = 6 см',
+                '----------------------',
+                'Знайти: AB'
+            ], startX + baseW + 50, startY + 10);
+
+            ctx.restore();
+        }
+
+        function drawUserImageTask(ctx, num, w, h) {
+            ctx.save();
+            ctx.strokeStyle = '#ffcc00';
+            ctx.lineWidth = 4;
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 26px Inter, sans-serif';
+
+            const scaleX = w / 400;
+            const scaleY = h / 380;
+
+            if (num === 5) { 
+                const Bx = 190 * scaleX, By = 40 * scaleY, Ax = 60 * scaleX, Ay = 310 * scaleY, Cx = 320 * scaleX, Cy = 310 * scaleY, Dx = 190 * scaleX, Dy = 310 * scaleY;
+                ctx.beginPath(); ctx.moveTo(Bx, By); ctx.lineTo(Ax, Ay); ctx.lineTo(Cx, Cy); ctx.closePath(); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(Bx, By); ctx.lineTo(Dx, Dy); ctx.stroke(); ctx.strokeRect(Dx-20, Dy-20, 20, 20);
+                ctx.fillText('B', Bx-10, By-15); ctx.fillText('A', Ax-30, Ay+20); ctx.fillText('C', Cx+15, Cy+20); ctx.fillText('D', Dx-10, Dy+30);
+                ctx.fillText('17', (Ax+Bx)/2 - 35, (Ay+By)/2); ctx.fillText('AC=16', (Ax+Cx)/2 - 35, Dy+45);
+                ctx.fillStyle = '#ffcc00'; ctx.fillText('?', Dx+20, (By+Dy)/2);
+            }
+            else if (num === 6) { 
+                const Bx = 190 * scaleX, By = 40 * scaleY, Ax = 60 * scaleX, Ay = 310 * scaleY, Cx = 320 * scaleX, Cy = 310 * scaleY, Dx = 190 * scaleX, Dy = 310 * scaleY;
+                ctx.beginPath(); ctx.moveTo(Bx, By); ctx.lineTo(Ax, Ay); ctx.lineTo(Cx, Cy); ctx.closePath(); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(Bx, By); ctx.lineTo(Dx, Dy); ctx.stroke(); ctx.strokeRect(Dx-20, Dy-20, 20, 20);
+                ctx.fillText('B', Bx-10, By-15); ctx.fillText('A', Ax-30, Ay+20); ctx.fillText('C', Cx+15, Cy+20); ctx.fillText('D', Dx-10, Dy+30);
+                ctx.fillText('17', (Ax+Bx)/2 - 35, (Ay+By)/2); ctx.fillText('15', Dx+20, (By+Dy)/2); ctx.fillText('AB=BC', Bx+35, By+20);
+                ctx.fillStyle = '#ffcc00'; ctx.fillText('?', (Ax+Dx)/2, Dy+35);
+            }
+            else if (num === 7) { 
+                const Bx = 190 * scaleX, By = 40 * scaleY, Ax = 60 * scaleX, Ay = 310 * scaleY, Cx = 320 * scaleX, Cy = 310 * scaleY, Dx = 190 * scaleX, Dy = 310 * scaleY;
+                ctx.beginPath(); ctx.moveTo(Bx, By); ctx.lineTo(Ax, Ay); ctx.lineTo(Cx, Cy); ctx.closePath(); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(Bx, By); ctx.lineTo(Dx, Dy); ctx.stroke(); ctx.strokeRect(Dx-20, Dy-20, 20, 20);
+                ctx.fillText('B', Bx-10, By-15); ctx.fillText('A', Ax-30, Ay+20); ctx.fillText('C', Cx+15, Cy+20); ctx.fillText('D', Dx-10, Dy+30);
+                ctx.fillText('20', Dx+20, (By+Dy)/2); ctx.fillText('AC=30', (Ax+Cx)/2 - 35, Dy+45); ctx.fillText('AB=BC', Bx+35, By+20);
+                ctx.fillStyle = '#ffcc00'; ctx.fillText('?', (Ax+Bx)/2 - 35, (Ay+By)/2);
+            }
+            else if (num === 8) { 
+                const Bx = 190 * scaleX, By = 40 * scaleY, Ax = 60 * scaleX, Ay = 175 * scaleY, Cx = 320 * scaleX, Cy = 175 * scaleY, Dx = 190 * scaleX, Dy = 310 * scaleY;
+                ctx.beginPath(); ctx.moveTo(Ax, Ay); ctx.lineTo(Bx, By); ctx.lineTo(Cx, Cy); ctx.lineTo(Dx, Dy); ctx.closePath(); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(Ax, Ay); ctx.lineTo(Cx, Cy); ctx.moveTo(Bx, By); ctx.lineTo(Dx, Dy); ctx.stroke();
+                ctx.fillText('B', Bx-10, By-15); ctx.fillText('A', Ax-30, Ay+5); ctx.fillText('C', Cx+15, Cy+5); ctx.fillText('D', Dx-10, Dy+30);
+                ctx.fillText('AC=24, BD=18', (Ax+Cx)/2 - 70, Dy+45); ctx.fillText('ABCD - ромб', Bx+25, By);
+                ctx.fillStyle = '#ffcc00'; ctx.fillText('?', (Ax+Bx)/2 - 20, (Ay+By)/2 - 15);
+            }
+
+            ctx.restore();
+        }
+
+        function getPos(canvas, evt) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        function handleCanvasStart(id, evt) {
+            const state = canvasStates[id];
+            if (!state) return;
+            
+            if (state.activeTextarea) {
+                commitTextareaToCanvas(id);
+                return;
+            }
+
+            const pos = getPos(state.canvas, evt);
+
+            if (state.tool === 'text') {
+                createCanvasTextarea(id, pos.x, pos.y);
+                return;
+            }
+
+            state.isDrawing = true;
+            state.ctx.beginPath();
+            state.ctx.moveTo(pos.x, pos.y);
+        }
+
+        function handleCanvasMove(id, evt) {
+            const state = canvasStates[id];
+            if (!state || !state.isDrawing || state.tool === 'text') return;
+            const pos = getPos(state.canvas, evt);
+
+            if (state.tool === 'pen') {
+                state.ctx.strokeStyle = state.color;
+                state.ctx.lineWidth = 3;
+            } else if (state.tool === 'eraser') {
+                state.ctx.strokeStyle = '#1a1a1a';
+                state.ctx.lineWidth = 26;
+            }
+            state.ctx.lineTo(pos.x, pos.y);
+            state.ctx.stroke();
+        }
+
+        function handleCanvasEnd(id) {
+            const state = canvasStates[id];
+            if (state && state.isDrawing) {
+                state.isDrawing = false;
+                saveState(id);
+            }
+        }
+
+        function createCanvasTextarea(id, x, y) {
+            const state = canvasStates[id];
+            const container = state.container;
+
+            const ta = document.createElement('textarea');
+            ta.className = 'canvas-textarea';
+            ta.style.left = x + 'px';
+            ta.style.top = y + 'px';
+            ta.style.width = '260px';
+            ta.style.height = '100px';
+            ta.style.color = state.color;
+            ta.style.fontSize = (state.fontSize || 20) + 'px';
+            ta.placeholder = 'Введіть текст...';
+
+            ta.addEventListener('mousedown', (e) => e.stopPropagation());
+            ta.addEventListener('touchstart', (e) => e.stopPropagation());
+
+            container.appendChild(ta);
+            setTimeout(() => ta.focus(), 20);
+
+            state.activeTextarea = { element: ta, x: x, y: y, fontSize: state.fontSize || 20 };
+            ta.addEventListener('blur', () => commitTextareaToCanvas(id));
+        }
+
+        function changeTextSize(id, delta) {
+            const state = canvasStates[id];
+            if (!state) return;
+            state.fontSize = Math.max(14, Math.min(48, (state.fontSize || 20) + delta));
+            
+            const displayEl = document.getElementById(`text-size-val-${id}`);
+            if (displayEl) displayEl.innerText = state.fontSize + 'px';
+
+            if (state.activeTextarea && state.activeTextarea.element) {
+                state.activeTextarea.element.style.fontSize = state.fontSize + 'px';
+                state.activeTextarea.fontSize = state.fontSize;
+                state.activeTextarea.element.focus();
+            }
+        }
+
+        function insertSymbol(id, symbol) {
+            const state = canvasStates[id];
+            if (state && state.activeTextarea && state.activeTextarea.element) {
+                const ta = state.activeTextarea.element;
+                const start = ta.selectionStart;
+                const end = ta.selectionEnd;
+                const text = ta.value;
+                ta.value = text.substring(0, start) + symbol + text.substring(end);
+                ta.selectionStart = ta.selectionEnd = start + symbol.length;
+                ta.focus();
+            } else {
+                alert('Спочатку клацніть по полотну інструментом "ДРУК", щоб відкрити поле вводу!');
+            }
+        }
+
+        function commitTextareaToCanvas(id) {
+            const state = canvasStates[id];
+            if (!state || !state.activeTextarea) return;
+
+            const { element, x, y, fontSize } = state.activeTextarea;
+            const text = element.value;
+
+            if (text && text.trim().length > 0) {
+                const ctx = state.ctx;
+                ctx.save();
+                ctx.fillStyle = state.color;
+                const fSize = fontSize || state.fontSize || 20;
+                ctx.font = `bold ${fSize}px Inter, sans-serif`;
+                ctx.textBaseline = 'top';
+
+                const lines = text.split('\n');
+                lines.forEach((line, index) => {
+                    ctx.fillText(line, x + 4, y + 4 + (index * (fSize * 1.3)));
+                });
+
+                ctx.restore();
+                saveState(id);
+            }
+
+            if (element && element.parentNode) {
+                element.parentNode.removeChild(element);
+            }
+            state.activeTextarea = null;
+        }
+
+        function saveState(id) {
+            const state = canvasStates[id];
+            if (!state) return;
+            if (state.history.length >= 15) state.history.shift();
+            state.history.push(state.ctx.getImageData(0, 0, state.canvas.width, state.canvas.height));
+        }
+
+        function undoCanvas(id) {
+            const state = canvasStates[id];
+            if (!state) return;
+            if (state.activeTextarea) commitTextareaToCanvas(id);
+            if (state.history.length > 1) {
+                state.history.pop();
+                state.ctx.putImageData(state.history[state.history.length - 1], 0, 0);
+            }
+        }
+
+        function clearCanvas(id) {
+            const state = canvasStates[id];
+            if (!state) return;
+            if (state.activeTextarea) commitTextareaToCanvas(id);
+            state.ctx.clearRect(0, 0, state.canvas.width, state.canvas.height);
+            renderCanvasPreset(id);
+            saveState(id);
+        }
+
+        function setTool(id, tool, evt) {
+            if (canvasStates[id] && canvasStates[id].activeTextarea) {
+                commitTextareaToCanvas(id);
+            }
+            if(canvasStates[id]) canvasStates[id].tool = tool;
+            const btns = document.querySelectorAll(`.tool-btn-${id}`);
+            btns.forEach(b => {
+                b.classList.remove('bg-brand-yellow', 'text-black');
+                b.classList.add('bg-gray-800', 'text-gray-200');
+            });
+            
+            const targetBtn = evt ? evt.currentTarget : btns[0];
+            if (targetBtn) {
+                targetBtn.classList.remove('bg-gray-800', 'text-gray-200');
+                targetBtn.classList.add('bg-brand-yellow', 'text-black');
+            }
+        }
+
+        function setColor(id, color) {
+            if(canvasStates[id]) canvasStates[id].color = color;
+        }
+
+        window.onload = function() {
+            initCanvases();
+        };
+
+        function checkTask2() {
+            const v1 = document.getElementById('input-task-2-1').value.trim();
+            const res = document.getElementById('result-task-2');
+            res.classList.remove('hidden', 'bg-green-900/80', 'text-green-200', 'bg-red-900/80', 'text-red-200');
+
+            if (v1 === '5') {
+                res.classList.add('bg-green-900/80', 'text-green-200');
+                res.innerText = 'Відмінно! За теоремою Піфагора: BC = √(13² - 12²) = √(169 - 144) = √25 = 5 см.';
+                confetti({ particleCount: 30, spread: 60, origin: { y: 0.6 } });
+            } else {
+                res.classList.add('bg-red-900/80', 'text-red-200');
+                res.innerText = 'Перевірте обчислення! За теоремою Піфагора: BC² = 13² - 12² = 169 - 144 = 25.';
+            }
+        }
+
+        function checkTask3() {
+            const val = document.getElementById('input-task-3').value.trim();
+            const res = document.getElementById('result-task-3');
+            res.classList.remove('hidden', 'bg-green-900/80', 'text-green-200', 'bg-red-900/80', 'text-red-200');
+
+            if (val === '512') {
+                res.classList.add('bg-green-900/80', 'text-green-200');
+                res.innerText = 'Супер! x² + x² = 32² ⇒ 2x² = 1024 ⇒ x² = 512.';
+                confetti({ particleCount: 30, spread: 60, origin: { y: 0.6 } });
+            } else {
+                res.classList.add('bg-red-900/80', 'text-red-200');
+                res.innerText = 'Не зовсім так. У ΔABC: x² + x² = 32² = 1024. Тоді 2x² = 1024, тобто x² = 512.';
+            }
+        }
+
+        function checkTask4() {
+            const val = document.getElementById('input-task-4').value.trim();
+            const res = document.getElementById('result-task-4');
+            res.classList.remove('hidden', 'bg-green-900/80', 'text-green-200', 'bg-red-900/80', 'text-red-200');
+
+            if (val === '65') {
+                res.classList.add('bg-green-900/80', 'text-green-200');
+                res.innerText = 'Правильно! CM = 4 см. З ΔACM: AM² = 7² + 4² = 49 + 16 = 65.';
+                confetti({ particleCount: 30, spread: 60, origin: { y: 0.6 } });
+            } else {
+                res.classList.add('bg-red-900/80', 'text-red-200');
+                res.innerText = 'Зверніть увагу: половина більшого катета CM = 4 см. Тоді AM² = 7² + 4² = 65.';
+            }
+        }
+
+        function checkTask5() {
+            const val = document.getElementById('input-task-5').value.trim();
+            const res = document.getElementById('result-task-5');
+            res.classList.remove('hidden', 'bg-green-900/80', 'text-green-200', 'bg-red-900/80', 'text-red-200');
+
+            if (val === '53') {
+                res.classList.add('bg-green-900/80', 'text-green-200');
+                res.innerText = 'Чудово! AO² = OB² + AB² = 2² + 7² = 4 + 49 = 53.';
+                confetti({ particleCount: 30, spread: 60, origin: { y: 0.6 } });
+            } else {
+                res.classList.add('bg-red-900/80', 'text-red-200');
+                res.innerText = 'Помилка! ∠OBA = 90°, AO² = 2² + 7² = 4 + 49 = 53.';
+            }
+        }
+
+        function checkTask6() {
+            const val = document.getElementById('input-task-6').value.trim();
+            const res = document.getElementById('result-task-6');
+            res.classList.remove('hidden', 'bg-green-900/80', 'text-green-200', 'bg-red-900/80', 'text-red-200');
+
+            if (val === '10') {
+                res.classList.add('bg-green-900/80', 'text-green-200');
+                res.innerText = 'Чудово! Половина основи AD = 6 см. За теоремою Піфагора: AB = √(6² + 8²) = √(36 + 64) = √100 = 10 см.';
+                confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
+            } else {
+                res.classList.add('bg-red-900/80', 'text-red-200');
+                res.innerText = 'Не зовсім так. Висота ділить основу навпіл: AD = 6 см. Тоді бічна сторона AB² = 6² + 8² = 100, тобто AB = 10 см.';
+            }
+        }
+
+        function checkImgTask(num, correctAns) {
+            const val = document.getElementById(`input-img-${num}`).value.trim();
+            const res = document.getElementById(`result-img-${num}`);
+            res.classList.remove('hidden', 'bg-green-900/80', 'text-green-200', 'bg-red-900/80', 'text-red-200');
+
+            if (parseInt(val) === correctAns) {
+                res.classList.add('bg-green-900/80', 'text-green-200');
+                res.innerText = `Правильно! Відповідь: ${correctAns}.`;
+                confetti({ particleCount: 30, spread: 60, origin: { y: 0.6 } });
+            } else {
+                res.classList.add('bg-red-900/80', 'text-red-200');
+                res.innerText = `Спробуйте ще раз! Правильна відповідь: ${correctAns}.`;
+            }
+        }
+
+        let timerInterval;
+        function startBreakTimer() {
+            const btn = document.getElementById('timer-btn');
+            const display = document.getElementById('timer-display');
+            btn.classList.add('hidden');
+            display.classList.remove('hidden');
+
+            let timeLeft = 30;
+            display.innerText = timeLeft;
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                display.innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    display.innerText = 'Час вийшов! Повертаємося до уроку!';
+                    setTimeout(() => {
+                        btn.classList.remove('hidden');
+                        display.classList.add('hidden');
+                    }, 3000);
+                }
+            }, 1000);
+        }
+
+        function selectReflection(msg) {
+            const res = document.getElementById('refl-msg');
+            res.classList.remove('hidden');
+            res.innerText = 'Ваш вибір збережено: "' + msg + '"';
+            confetti({ particleCount: 40, spread: 60, origin: { y: 0.8 } });
+        }
+    </script>
+</body>
+</html>
